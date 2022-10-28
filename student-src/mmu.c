@@ -67,13 +67,15 @@ uint8_t mem_access(vaddr_t addr, char access, uint8_t data)
     vpn_t VPN = vaddr_vpn(addr);
     uint16_t virtual_offset = vaddr_offset(addr);
 
+    // page table
+    pte_t * pgtable = (pte_t *)(mem + (PTBR * PAGE_SIZE));
     // page table entry
-    pte_t ;
+    pte_t PTE = pgtable[VPN];
 
     // physical frame number
-    pfn_t PFN = mem[(PTBR * PAGE_SIZE) + VPN];
+    pfn_t PFN = PTE.pfn;
     // validate physical frame
-    assert(frame_table[PFN].mapped == 1 && frame_table[PFN].process->pid == current_process->pid);
+    assert(PTE.valid);
 
 
     // physical addr
@@ -89,7 +91,7 @@ uint8_t mem_access(vaddr_t addr, char access, uint8_t data)
     else
     {
         mem[paddr] = data;
-
+        PTE.dirty = 1;
     }
 
     return 0;
