@@ -4,7 +4,6 @@
 #include "types.h"
 #include "pagesim.h"
 #include "va_splitting.h"
-
 /**
  * An entry in the frame table.
  *

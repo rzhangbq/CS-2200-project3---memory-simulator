@@ -57,29 +57,39 @@ uint8_t mem_access(vaddr_t addr, char access, uint8_t data)
 {
     // TODO: translate virtual address to physical, then perform the specified operation
 
+    // for stats computation
+    stats.accesses += 1;
+
     /* Either read or write the data to the physical address
        depending on 'rw' */
 
     // validate access
-    assert(access == 'r' || access == 'w');
+    if (!(access == 'r' || access == 'w'))
+        printf("invalid `access`");
 
     // splitting the VPN
     vpn_t VPN = vaddr_vpn(addr);
     uint16_t virtual_offset = vaddr_offset(addr);
 
     // page table
-    pte_t * pgtable = (pte_t *)(mem + (PTBR * PAGE_SIZE));
+    pte_t *pgtable = (pte_t *)(mem + (PTBR * PAGE_SIZE));
     // page table entry
-    pte_t PTE = pgtable[VPN];
+    pte_t *PTE = &pgtable[VPN];
 
+    // calling page_fault if valid bit is not set
+    if (!PTE->valid)
+    {
+        page_fault(addr);
+        if (!PTE->valid)
+            printf("page_fault handler fails");
+    }
+    // else // setting referenced bit for the FTE
+    frame_table[PTE->pfn].referenced = 1;
     // physical frame number
-    pfn_t PFN = PTE.pfn;
-    // validate physical frame
-    assert(PTE.valid);
-
+    pfn_t PFN = PTE->pfn;
 
     // physical addr
-    paddr_t paddr = (PFN << OFFSET_LEN) + virtual_offset;
+    paddr_t paddr = (paddr_t)(PFN << OFFSET_LEN) + virtual_offset;
 
     // reading
     if (access == 'r')
@@ -91,7 +101,7 @@ uint8_t mem_access(vaddr_t addr, char access, uint8_t data)
     else
     {
         mem[paddr] = data;
-        PTE.dirty = 1;
+        PTE->dirty = 1;
     }
 
     return 0;

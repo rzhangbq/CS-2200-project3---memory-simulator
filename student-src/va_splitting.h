@@ -1,7 +1,6 @@
 #pragma once
-
+#include "stdio.h"
 #include "mmu.h"
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
@@ -20,8 +19,10 @@ static inline vpn_t vaddr_vpn(vaddr_t addr)
 {
     // TODO: return the VPN from virtual address addr.
     // validate addr
-    assert(addr < (1 << VADDR_LEN));
-    assert(addr >= 0);
+    if (!(addr <= (1 << VADDR_LEN)))
+        printf("invalid addr");
+    if (!(addr >= 0))
+        printf("invalid addr");
     // get the vpn
     // right shift the addr by the offset length
     vpn_t vpn = addr >> OFFSET_LEN;
@@ -32,8 +33,10 @@ static inline uint16_t vaddr_offset(vaddr_t addr)
 {
     // TODO: return the offset into the frame from virtual address addr.
     // validate addr
-    assert(addr < (1 << VADDR_LEN));
-    assert(addr >= 0);
+    if (!(addr <= (1 << VADDR_LEN)))
+        printf("invalid addr");
+    if (!(addr >= 0))
+        printf("invalid addr");
     // get the offset
     // get OFFSET_LEN bits of 1s
     uint16_t ones = (1 << OFFSET_LEN) - 1;

@@ -28,19 +28,21 @@
 void proc_init(pcb_t *proc)
 {
     // TODO: initialize proc's page table.
-    // finding a free frame
-    pfn_t free_frame = free_frame();
-    // updating the frame table
-    frame_table[free_frame].process = proc;
-    frame_table[free_frame].mapped = 1;
+    // finding a free physical frame number
+    pfn_t FPFN = free_frame();
+    // getting the frame table entry
+    fte_t *FTE = &frame_table[FPFN];
+    // updating the frame table entry
+    FTE->mapped = 1;
+    FTE->process = proc;
     // protecting the page table
-    frame_table[free_frame].protected = 1;
+    FTE->protected = 1;
 
     // initialize page table
     // zero-initialize the page table
-    memset(mem + (free_frame * PAGE_SIZE), 0, PAGE_SIZE);
+    memset(mem + (FPFN * PAGE_SIZE), 0, PAGE_SIZE);
     // set ptbr to the free frame PFN
-    proc->saved_ptbr = free_frame;
+    proc->saved_ptbr = FPFN;
 }
 
 /**
@@ -84,10 +86,47 @@ void context_switch(pcb_t *proc)
  */
 void proc_cleanup(pcb_t *proc)
 {
+    // affected process PTBR
+    pfn_t evicted_PTBR = proc->saved_ptbr;
+    // affected process page table
+    pte_t *evicted_pgtable = (pte_t *)(mem + (evicted_PTBR * PAGE_SIZE));
+
     // TODO: Iterate the proc's page table and clean up each valid page
     for (size_t i = 0; i < NUM_PAGES; i++)
     {
+        // evicted page table entry
+        pte_t *evicted_PTE = &evicted_pgtable[i];
+
+        // if this page is swapped
+        if (swap_exists(evicted_PTE))
+            swap_free(evicted_PTE);
+        // if this page is valid
+        if (evicted_PTE->valid)
+        {
+            // evicted physical frame number
+            pfn_t evicted_PFN = evicted_PTE->pfn;
+            // get the frame table entry of the evicted frame:
+            fte_t *FTE = &frame_table[evicted_PFN];
+            if (FTE->protected)
+                printf("freeing protected frame");
+            // clearing frame table
+            FTE->mapped = 0;
+            FTE->process = 0;
+            FTE->vpn = 0;
+            FTE->referenced = 0;
+            // clearing page table entry
+            evicted_PTE->valid = 0;
+        }
     }
+    // clear the page table
+    // get the frame table entry of the page table:
+    fte_t *FTE = &frame_table[evicted_PTBR];
+    // clearing frame table
+    FTE->protected = 0;
+    FTE->mapped = 0;
+    FTE->process = 0;
+    FTE->vpn = 0;
+    FTE->referenced = 0;
 }
 
 #pragma GCC diagnostic pop

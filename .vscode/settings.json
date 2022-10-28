@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "va_splitting.h": "c",
+        "stats.h": "c"
+    },
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/Users/rsz/Documents/CS-2200/cs2200-project3",
+            "binaryPath": "/Users/rsz/Documents/CS-2200/cs2200-project3/vm-sim",
+            "binaryArgs": [
+                "-i",
+                "traces/mcf.trace",
+                "-rclocksweep",
+            ]
+        }
+    ]
+}

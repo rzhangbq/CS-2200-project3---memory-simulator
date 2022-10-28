@@ -1,7 +1,7 @@
 #include "stats.h"
 
 /* The stats. See the definition in stats.h. */
-stats_t stats;
+stats_t stats = {0,0,0,0};
 
 /**
  * --------------------------------- PROBLEM 10 --------------------------------------
@@ -16,5 +16,6 @@ stats_t stats;
  * -----------------------------------------------------------------------------------
  */
 void compute_stats() {
-
+    // not sure
+    stats.amat = (double)(stats.accesses * MEMORY_ACCESS_TIME + stats.page_faults * DISK_PAGE_READ_TIME + stats.writebacks * DISK_PAGE_WRITE_TIME)/(double) stats.accesses;
 }
