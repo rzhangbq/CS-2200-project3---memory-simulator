@@ -47,14 +47,13 @@ void page_fault(vaddr_t addr)
    else
       memset(mem + (free_frame * PAGE_SIZE), 0, PAGE_SIZE);
 
-   // update mapping from VPN to the new PFN in the current process’ page table.
+   // update PTE
    PTE->pfn = free_frame;
+   PTE->valid = 1;
 
    frame_table[free_frame].mapped = 1;
    frame_table[free_frame].process->pid = current_process->pid;
    frame_table[free_frame].vpn = VPN;
-
-   
 }
 
 #pragma GCC diagnostic pop
